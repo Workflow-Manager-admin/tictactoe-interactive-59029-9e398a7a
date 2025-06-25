@@ -238,8 +238,8 @@ class _HomeScreenState extends State<HomeScreen> {
     return Colors.grey.shade500;
   }
 
+  /// Builds the 3x3 board with interactive cells, updating so every cell has a thick black border.
   Widget _buildBoard() {
-    /// Builds the 3x3 board with interactive cells.
     double boardWidth = MediaQuery.of(context).size.width * 0.90;
     if (boardWidth > 340) boardWidth = 340;
     return Center(
@@ -251,7 +251,7 @@ class _HomeScreenState extends State<HomeScreen> {
             color: Colors.grey[50],
             borderRadius: BorderRadius.circular(18),
             border: Border.all(
-              color: Color(0xFFFF5252), // Accent color for modern minimalistic border
+              color: Color(0xFFFF5252), // Accent color for outer board border
               width: 2,
             ),
             boxShadow: [
@@ -268,15 +268,31 @@ class _HomeScreenState extends State<HomeScreen> {
               return Expanded(
                 child: Row(
                   children: List.generate(boardSize, (col) {
+                    // Provide black border for each cell
                     return Expanded(
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 160),
-                        margin: EdgeInsets.only(
-                          top: row != 0 ? 2 : 0,
-                          left: col != 0 ? 2 : 0,
-                        ),
+                        margin: EdgeInsets.zero,
                         decoration: BoxDecoration(
                           color: _cellColor(_board[row][col]),
+                          border: Border(
+                            top: BorderSide(
+                              color: Colors.black,
+                              width: row == 0 ? 2.5 : 1.0,
+                            ),
+                            left: BorderSide(
+                              color: Colors.black,
+                              width: col == 0 ? 2.5 : 1.0,
+                            ),
+                            right: BorderSide(
+                              color: Colors.black,
+                              width: col == boardSize - 1 ? 2.5 : 1.0,
+                            ),
+                            bottom: BorderSide(
+                              color: Colors.black,
+                              width: row == boardSize - 1 ? 2.5 : 1.0,
+                            ),
+                          ),
                           borderRadius: BorderRadius.circular(5),
                         ),
                         child: InkWell(
