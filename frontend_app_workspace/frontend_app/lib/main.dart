@@ -130,18 +130,114 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // PUBLIC_INTERFACE
   void _performAIMove() {
-    /// Very simple AI: picks the first available cell (can be replaced by a better AI).
+    /// Uses the Minimax algorithm for a challenging single-player AI opponent.
+    // Check if there are moves left and game is not over
+    if (_winner != null || _draw) return;
+    // Find the best move using Minimax for Player.o (the AI)
+    int bestScore = -1000;
+    int bestRow = -1;
+    int bestCol = -1;
+
     for (int row = 0; row < boardSize; row++) {
       for (int col = 0; col < boardSize; col++) {
         if (_board[row][col] == null) {
-          setState(() {
-            _board[row][col] = Player.o;
-          });
-          _checkGameEnd();
-          return;
+          _board[row][col] = Player.o;
+          int score = _minimax(_board, 0, false);
+          _board[row][col] = null;
+          if (score > bestScore) {
+            bestScore = score;
+            bestRow = row;
+            bestCol = col;
+          }
         }
       }
     }
+
+    if (bestRow != -1 && bestCol != -1) {
+      setState(() {
+        _board[bestRow][bestCol] = Player.o;
+      });
+    }
+    _checkGameEnd();
+  }
+
+  int _minimax(List<List<Player?>> board, int depth, bool isMaximizing) {
+    // Check for terminal states
+    Player? winner = _evaluateWinner(board);
+    if (winner != null) {
+      if (winner == Player.o) return 10 - depth;
+      if (winner == Player.x) return depth - 10;
+    }
+    if (_checkIsDraw(board)) return 0;
+
+    if (isMaximizing) {
+      int bestScore = -1000;
+      for (int row = 0; row < boardSize; row++) {
+        for (int col = 0; col < boardSize; col++) {
+          if (board[row][col] == null) {
+            board[row][col] = Player.o;
+            int score = _minimax(board, depth + 1, false);
+            board[row][col] = null;
+            if (score > bestScore) bestScore = score;
+          }
+        }
+      }
+      return bestScore;
+    } else {
+      int bestScore = 1000;
+      for (int row = 0; row < boardSize; row++) {
+        for (int col = 0; col < boardSize; col++) {
+          if (board[row][col] == null) {
+            board[row][col] = Player.x;
+            int score = _minimax(board, depth + 1, true);
+            board[row][col] = null;
+            if (score < bestScore) bestScore = score;
+          }
+        }
+      }
+      return bestScore;
+    }
+  }
+
+  Player? _evaluateWinner(List<List<Player?>> board) {
+    // Rows and columns
+    for (int i = 0; i < boardSize; i++) {
+      // Rows
+      if (board[i][0] != null &&
+          board[i][0] == board[i][1] &&
+          board[i][1] == board[i][2]) {
+        return board[i][0];
+      }
+      // Columns
+      if (board[0][i] != null &&
+          board[0][i] == board[1][i] &&
+          board[1][i] == board[2][i]) {
+        return board[0][i];
+      }
+    }
+    // Diagonals
+    if (board[0][0] != null &&
+        board[0][0] == board[1][1] &&
+        board[1][1] == board[2][2]) {
+      return board[0][0];
+    }
+    if (board[0][2] != null &&
+        board[0][2] == board[1][1] &&
+        board[1][1] == board[2][0]) {
+      return board[0][2];
+    }
+    return null;
+  }
+
+  bool _checkIsDraw(List<List<Player?>> board) {
+    for (var row in board) {
+      for (var cell in row) {
+        if (cell == null) {
+          return false;
+        }
+      }
+    }
+    return _evaluateWinner(board) == null;
   }
 
   // PUBLIC_INTERFACE
